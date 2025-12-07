@@ -1,16 +1,57 @@
---// Speed GUI Script (Universal)
+--// Universal Speed GUI Script (Respawn-Proof + Draggable)
 
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
+
+-- Store the speed so it persists after death
+local currentSpeed = nil
 
 -- Function to get the player's humanoid safely
 local function getHumanoid(character)
     return character:WaitForChild("Humanoid")
 end
 
+-- Function to make a frame draggable (PC + Mobile)
+local function makeDraggable(frame)
+    local dragging = false
+    local dragStart
+    local startPos
+
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            -- nothing needed here; movement is handled globally
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
 -- Function to create the GUI
 local function createSpeedGUI()
-    -- Avoid creating multiple GUIs
     if player:FindFirstChild("PlayerGui"):FindFirstChild("SpeedChangerGui") then
         return
     end
@@ -25,6 +66,8 @@ local function createSpeedGUI()
     frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     frame.BackgroundTransparency = 0.1
     frame.Parent = screenGui
+
+    makeDraggable(frame) -- Make frame draggable
 
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, 0, 0, 30)
@@ -55,6 +98,7 @@ local function createSpeedGUI()
         
         if humanoid and speed then
             humanoid.WalkSpeed = speed
+            currentSpeed = speed -- save speed for respawn
             applyButton.Text = "Speed Set!"
             task.wait(1)
             applyButton.Text = "Apply Speed"
@@ -69,9 +113,13 @@ end
 -- Create GUI initially
 createSpeedGUI()
 
--- Reapply GUI and Humanoid after respawn
+-- Reapply GUI and speed after respawn
 player.CharacterAdded:Connect(function(character)
-    -- Wait for humanoid
     local humanoid = getHumanoid(character)
     createSpeedGUI()
+    
+    -- Reapply previous speed if there was one
+    if currentSpeed then
+        humanoid.WalkSpeed = currentSpeed
+    end
 end)
