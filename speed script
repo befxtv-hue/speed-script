@@ -1,0 +1,63 @@
+--// Speed GUI Script
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Wait for character
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+--// Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SpeedChangerGui"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+--// Create Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 120)
+frame.Position = UDim2.new(0, 20, 0, 200)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BackgroundTransparency = 0.1
+frame.Parent = screenGui
+
+--// Create TextLabel
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(1, 0, 0, 30)
+label.BackgroundTransparency = 1
+label.Text = "GD Script Speed"
+label.TextColor3 = Color3.new(1, 1, 1)
+label.Parent = frame
+
+--// Create TextBox
+local speedBox = Instance.new("TextBox")
+speedBox.Size = UDim2.new(1, -20, 0, 30)
+speedBox.Position = UDim2.new(0, 10, 0, 40)
+speedBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+speedBox.Text = ""
+speedBox.PlaceholderText = "Type Your Speed"
+speedBox.TextColor3 = Color3.new(1, 1, 1)
+speedBox.Parent = frame
+
+--// Create Button
+local applyButton = Instance.new("TextButton")
+applyButton.Size = UDim2.new(1, -20, 0, 30)
+applyButton.Position = UDim2.new(0, 10, 0, 80)
+applyButton.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+applyButton.Text = "Apply Speed"
+applyButton.TextColor3 = Color3.new(1, 1, 1)
+applyButton.Parent = frame
+
+--// Button click
+applyButton.MouseButton1Click:Connect(function()
+	local speed = tonumber(speedBox.Text)
+
+	if speed then
+		humanoid.WalkSpeed = speed
+		applyButton.Text = "Speed Set!"
+		task.wait(1)
+		applyButton.Text = "Apply Your Speed"
+	else
+		applyButton.Text = "Invalid Number"
+		task.wait(1)
+		applyButton.Text = "Apply Your Speed"
+	end
+end)
